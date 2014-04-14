@@ -170,8 +170,8 @@ function interfacePlayer(request, response, next) {
 		var html = '';
 		html += '<html><head>';
 		html += '<script type="text/javascript" language="Javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>';
-		html += '<script type="text/javascript" language="Javascript"> function clickItem(id, sub) { $.get("/play/" + id + "?sub=" + sub, function(){}); } </script>';
-		html += '</head><body><table width="100%" border="3">';
+		html += '<script type="text/javascript" language="Javascript"> function stop() { $.get("/stop", function(){}); } function clickItem(id, sub) { $.get("/play/" + id + "?sub=" + sub, function(){}); } </script>';
+		html += '</head><body><br/><br/><center><a href="javascript:stop()">Stop movie</a></center><br/><table width="100%" border="3">';
 
 		for (var i = 0; i < rows.length; i++) {
 			html += '<tr>';
@@ -205,10 +205,24 @@ function interfacePlayer(request, response, next) {
 	return next();
 }
 
+function stopPlayer(request, response, next) {
+
+	response.setHeader('Access-Control-Allow-Origin','*');
+
+	response.writeHead(200);
+	response.end('OK');
+
+	exec('killall mplayer; killall mplayer ', function(){});
+
+	return next();
+
+}
+
 server.get({path : '/list', version : '0.0.1'} , listMovies);
 server.get({path : '/image/:id', version : '0.0.1'} , getImage);
 server.get({path : '/play/:id', version : '0.0.1'} , playMovie);
 server.get({path : '/interface', version : '0.0.1'} , interfacePlayer);
+server.get({path : '/stop', version : '0.0.1'} , stopPlayer);
 
 server.listen('9090', 'localhost', function() {
 
