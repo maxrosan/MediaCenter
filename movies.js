@@ -31,6 +31,8 @@ files.readdir(pathToLocateMovies, function(error, filesArray) {
 
 				var subtitles = '';
 
+				console.log('Processing ' + directoryOfMovie);
+
 				for (var j = 0; j < filesMovieDirectory.length; j++) {
 					var parts = filesMovieDirectory[j].split('.');
 					var extension = parts[parts.length - 1];
@@ -67,7 +69,7 @@ files.readdir(pathToLocateMovies, function(error, filesArray) {
 								if (rowsSelect.length == 0) {
 									var destGifFile = directoryMovieTmp + '/' + screenshotFile;
 									var command = 'mplayer ' + movie + ' -ao null -ss 30 -endpos 10 -vo gif89a:fps=13:output=' + destGifFile + ' -vf scale=240:180 &';
-									console.log('Converting ' + movie + '... ' + command);
+									console.log('Converting ' + movie + '... ');
 									execSync(command, function(){});
 									console.log('ok');
 									//exec('mplayer ' + movie + ' -frames 1 -ss 40 -vo png; mv ' + screenshotFile + ' ' + directoryMovieTmp, function() {});
