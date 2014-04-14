@@ -7,14 +7,16 @@ var restify = require('restify');
 var sys = require('sys');
 var exec = require('child_process').exec;
 var mime = require('mime');
+var execSync = require('exec-sync');
 
 var db = new sqlite.Database('movies.db');
 
-var moviesExtension = ['mkv', 'mp4'];
+var moviesExtension = ['mkv', 'mp4', 'avi'];
 var subtitleExtension = ['srt'];
 
 db.serialize(function() {
 	db.run('CREATE TABLE IF NOT EXISTS movies (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL, subtitles TEXT, screenshot TEXT NOT NULL);');
+	db.run('DELETE FROM movies;');
 });
 
 files.readdir(pathToLocateMovies, function(error, filesArray) {
@@ -59,11 +61,16 @@ files.readdir(pathToLocateMovies, function(error, filesArray) {
 
 							var movie = completeMoviePath;
 							var directoryMovieTmp = directoryOfMovie; 
-							var screenshotFile = '00000001.png';
+							var screenshotFile = 'movie.gif';
 
 							db.all('SELECT * FROM movies WHERE path = \'' + movie + '\'', function(errorSelect, rowsSelect) {
 								if (rowsSelect.length == 0) {
-									exec('mplayer ' + movie + ' -frames 1 -ss 40 -vo png; mv ' + screenshotFile + ' ' + directoryMovieTmp, function() {});
+									var destGifFile = directoryMovieTmp + '/' + screenshotFile;
+									var command = 'mplayer ' + movie + ' -ao null -ss 30 -endpos 10 -vo gif89a:fps=13:output=' + destGifFile + ' -vf scale=240:180 &';
+									console.log('Converting ' + movie + '... ' + command);
+									execSync(command, function(){});
+									console.log('ok');
+									//exec('mplayer ' + movie + ' -frames 1 -ss 40 -vo png; mv ' + screenshotFile + ' ' + directoryMovieTmp, function() {});
 									var sqlInsertMovie = 'INSERT INTO movies (path, subtitles, screenshot) VALUES (?, ?, ?)';
 									var statement = db.prepare(sqlInsertMovie);
 									statement.run(movie, subtitles, directoryMovieTmp + '/' + screenshotFile);
