@@ -68,7 +68,7 @@ files.readdir(pathToLocateMovies, function(error, filesArray) {
 							db.all('SELECT * FROM movies WHERE path = \'' + movie + '\'', function(errorSelect, rowsSelect) {
 								if (rowsSelect.length == 0) {
 									var destGifFile = directoryMovieTmp + '/' + screenshotFile;
-									var command = 'mplayer ' + movie + ' -ao null -ss 30 -endpos 10 -vo gif89a:fps=13:output=' + destGifFile + ' -vf scale=240:180 &';
+									var command = 'mplayer ' + movie + ' -ao null -ss 60 -endpos 20 -vo gif89a:fps=13:output=' + destGifFile + ' -vf scale=240:180 &';
 									console.log('Converting ' + movie + '... ');
 									execSync(command, function(){});
 									console.log('ok');
