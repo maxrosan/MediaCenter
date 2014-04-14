@@ -134,9 +134,62 @@ function playMovie(request, response, next) {
 
 	db.serialize(function() {
 		db.each('SELECT * FROM movies WHERE id = \'' + request.params.id + '\'', function(error, row) {
-			exec('mplayer -fs ' + row.path + ' &', function() {});
+
+			var subtitle = request.query.sub;
+			var command = 'killall mplayer; killall mplayer; ';
+
+			if (subtitle == 'nothing') {
+				command += 'mplayer -fs ' + row.path + ' &';
+			} else {
+				command += 'mplayer -fs ' + row.path + ' -sub ' + (new Buffer(subtitle, 'base64')).toString('ascii') + ' &';
+			}
+
+			console.log('command = ' + command);
+
+			exec(command, function() {});
 		});
 	});
+
+	return next();
+}
+
+function interfacePlayer(request, response, next) {
+
+	response.setHeader('Access-Control-Allow-Origin','*');
+	response.writeHead(200);
+
+	db.serialize(function() { db.all('SELECT * FROM movies;', function(error, rows) {
+
+		var html = '';
+		html += '<html><head>';
+		html += '</head><body><table width="100%" border="0">';
+
+		for (var i = 0; i < rows.length; i++) {
+			html += '<tr>';
+			html += '<td><img width="150" height="130" src="/image/' + rows[i].id + '"/></td>';
+			html += '<td>';
+
+			html += rows[i].path + '<br/>';
+
+			html += '<a href="/play/' + rows[i].id + '?sub=nothing" target="_blank">No subtitle</a><br/>';
+
+			var subtitles = rows[i].subtitles.split(';');
+
+			for (var j = 0; j < subtitles.length; j++) {
+				html += '<a href="/play/' + rows[i].id + '?sub=' + (new Buffer(subtitles[j])).toString('base64')+ '" target="_blank">' + subtitles[j] + '</a><br/>';
+			}
+
+			html += '</td>';
+			html += '</tr>';
+		}
+
+		html += '</table></body></html>';
+
+		response.end(html);
+
+		console.log(rows);
+
+	}); });
 
 	return next();
 }
@@ -144,6 +197,7 @@ function playMovie(request, response, next) {
 server.get({path : '/list', version : '0.0.1'} , listMovies);
 server.get({path : '/image/:id', version : '0.0.1'} , getImage);
 server.get({path : '/play/:id', version : '0.0.1'} , playMovie);
+server.get({path : '/interface', version : '0.0.1'} , interfacePlayer);
 
 server.listen('9090', 'localhost', function() {
 
