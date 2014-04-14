@@ -162,21 +162,25 @@ function interfacePlayer(request, response, next) {
 
 		var html = '';
 		html += '<html><head>';
-		html += '</head><body><table width="100%" border="0">';
+		html += '<script type="text/javascript" language="Javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>';
+		html += '<script type="text/javascript" language="Javascript"> function clickItem(id, sub) { $.get("/play/" + id + "?sub=" + sub, function(){}); } </script>';
+		html += '</head><body><table width="100%" border="3">';
 
 		for (var i = 0; i < rows.length; i++) {
 			html += '<tr>';
-			html += '<td><img width="150" height="130" src="/image/' + rows[i].id + '"/></td>';
-			html += '<td>';
+			html += '<td align="center"><img width="150" height="130" src="/image/' + rows[i].id + '"/></td>';
+			html += '<td align="center">';
 
-			html += rows[i].path + '<br/>';
+			var titleParts = rows[i].path.split('/');
+			html += titleParts[titleParts.length - 1] + '<br/>';
 
-			html += '<a href="/play/' + rows[i].id + '?sub=nothing" target="_blank">No subtitle</a><br/>';
+			html += '<a href="javascript:clickItem(' + rows[i].id + ',\'nothing\')">No subtitle</a><br/>';
 
 			var subtitles = rows[i].subtitles.split(';');
 
 			for (var j = 0; j < subtitles.length; j++) {
-				html += '<a href="/play/' + rows[i].id + '?sub=' + (new Buffer(subtitles[j])).toString('base64')+ '" target="_blank">' + subtitles[j] + '</a><br/>';
+				var subtitleParts = subtitles[j].split('/');
+				html += '<a href="javascript:clickItem(' + rows[i].id + ',\'' + (new Buffer(subtitles[j])).toString('base64')+ '\')">' + subtitleParts[subtitleParts.length - 1] + '</a><br/>';
 			}
 
 			html += '</td>';
