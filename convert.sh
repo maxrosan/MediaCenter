@@ -15,7 +15,7 @@ while [ 1 ]; do
     
     $PARAM &
 
-    COUNTER=($COUNTER+1);
+    COUNTER=$(($COUNTER+1));
 
     if [ "$COUNTER" == "4" ]; then
         COUNTER=0;
