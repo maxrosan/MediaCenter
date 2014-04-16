@@ -1,5 +1,5 @@
 
-var pathToLocateMovies = '/home/mrosan/Downloads/movies';
+var pathToLocateMovies = '/home/max/Vídeos/movies';
 
 var files = require('fs');
 var sqlite = require('sqlite3');
@@ -17,7 +17,7 @@ var subtitleExtension = ['srt'];
 
 db.serialize(function() {
     db.run('CREATE TABLE IF NOT EXISTS movies (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL, subtitles TEXT, screenshot TEXT NOT NULL);');
-    db.run('DELETE FROM movies;');
+    //db.run('DELETE FROM movies;');
 });
 
 function toBase64(value) {
@@ -70,7 +70,8 @@ function processDirectory(filesMovieDirectory) {
                 db.all('SELECT * FROM movies WHERE path = \'' + path64Base + '\'', function(errorSelect, rowsSelect) {
                     if (rowsSelect.length == 0) {
                         var destGifFile = directoryMovieTmp + '/' + screenshotFile;
-                        var command = 'mplayer "' + movie + '" -ao null -ss 40 -endpos 5 -vo gif89a:fps=13:output="' + destGifFile + '" -vf scale=120:90';
+                        //var command = 'mplayer \\"' + movie + '\\" -ao null -ss 40 -endpos 5 -vo gif89a:fps=13:output=\\"' + destGifFile + '\\" -vf scale=120:90';
+			var command = 'convert_' + path64Base + '_' + toBase64(destGifFile);
                         console.log(command + ' ... ');
                         exec('echo ' + command + ' > convertfifo');
                         //cproc.spawn(command);
@@ -159,15 +160,10 @@ function playMovie(request, response, next) {
         db.each('SELECT * FROM movies WHERE id = \'' + request.params.id + '\'', function(error, row) {
 
             var subtitle = request.query.sub;
-            var command = 'killall mplayer; ';
-            
-            row.path = fromBase64(row.path);
 
-            if (subtitle == 'nothing') {
-                command += 'mplayer -fs "' + row.path + '"';
-            } else {
-                command += 'mplayer -fs "' + row.path + '" -sub ' + fromBase64(subtitle);
-            }
+	    exec('killall -9 mplayer');
+
+            var command = 'play_' + row.path + '_' + subtitle;
 
             console.log('command = ' + command);
 
@@ -245,6 +241,6 @@ server.get({path: '/play/:id', version: '0.0.1'}, playMovie);
 server.get({path: '/interface', version: '0.0.1'}, interfacePlayer);
 server.get({path: '/stop', version: '0.0.1'}, stopPlayer);
 
-server.listen('9090', 'localhost', function() {
+server.listen('9090', '0.0.0.0', function() {
 
 });

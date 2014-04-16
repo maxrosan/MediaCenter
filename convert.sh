@@ -1,25 +1,27 @@
 #!/bin/sh
 
-
 if [ -e convertfifo ]; then
     unlink convertfifo;
 fi;
 
 mkfifo convertfifo;
 
-COUNTER=0
+while [ true ]; do
 
-while [ 1 ]; do
+    POLL=`cat convertfifo`;
+    IFS='_' read -ra PARAMS <<< "$POLL"
 
-    PARAM=`cat convertfifo`;
-    
-    $PARAM &
+    OPT="${PARAMS[0]}"
+    MOVIE=`echo "${PARAMS[1]}" | base64 --decode`
 
-    COUNTER=$(($COUNTER+1));
+    if [ "$OPT" == "convert" ]; then
+       GIF=`echo "${PARAMS[2]}" | base64 --decode`
 
-    if [ "$COUNTER" == "4" ]; then
-        COUNTER=0;
-        wait; 
+       mplayer "$MOVIE" -ao null -ss 600 -endpos 5 -vo gif89a:fps=13:output="$GIF" -vf scale=120:90 &
+
+    else    
+       SUB=`echo "${PARAMS[2]}" | base64 --decode`
+       mplayer "$MOVIE" -fs -vo vaapi -sub "$SUB" &
     fi;
 
 done;
